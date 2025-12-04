@@ -10,7 +10,7 @@ The goal? To see if an AI Agent can act as a true extension of the analyst; navi
 
 ## The Scenario: The Monday Morning "Fire Drill"
 
-We are roleplaying a Senior Analyst at *Sun Spectra* (our fictional retail company). It’s Monday morning, and the VP of Sales needs an "Executive Update" immediately. They aren't looking for a deep dive; they want a pulse check on performance to help them tell a story in their afternoon board meeting.
+We are roleplaying a Senior Analyst at *SunSpectra* (our fictional retail company). It’s Monday morning, and the VP of Sales needs an "Executive Update" immediately. They aren't looking for a deep dive; they want a pulse check on performance to help them tell a story in their afternoon board meeting.
 
 ### The VP's Request
 
@@ -24,7 +24,7 @@ The VP has asked for three specific insights:
 
 ## The Tool Stack
 
-* **Database:** Snowflake (Hosting the *Sun Spectra* Retail Dataset)
+* **Database:** Snowflake (Hosting the *SunSpectra* Retail Dataset)
 * **The Agent/IDE:** Google Antigravity
 * **The Bench:** Me (A human analyst with too much coffee)
 
@@ -32,12 +32,24 @@ The VP has asked for three specific insights:
 
 Unlike a standard chat where you paste data, this workflow mimics a developer environment.
 
-### Phase 1: Context & Metadata
+### Phase 1: Setup
 
-Before asking the Agent to build charts, it needs to understand the "physics" of our world.
+Before asking the Agent to do anything, I need to connect it to the database and give it a context of the schema.
 
-* **Action:** We utilized the IDE to scan the Snowflake schema (`SUN_SPECTRA.CATALOG.PRODUCT_CATALOG`, `SALES_HISTORY`, etc.).
 * **Goal:** Establish a "Context Layer" so the AI knows how tables join (e.g., `PRODUCT_ID` to `SKU`) without us explicitly writing the joins every time.
+
+#### The Handshake (Connecting Antigravity to Snowflake)
+
+Antigravity runs on a VS Code backbone, so the connection process feels familiar to developers but might be new to pure analysts.
+
+1. **Install the Connector:** We used the native **"Snowflake"** extension within the IDE.  If you don't have this, install it.
+2. **Configure the Profile:** We set up a specific connection profile to isolate our environment.  You will need:
+    * **Account Identifier**
+    * **Username**
+    * **Password & MFA Code**
+3. **Test Connection:** Success. The IDE now had "read" access to the `SUN_SPECTRA` database.
+
+*Note: This step took about 5 minutes, mostly me fumbling about with my details and permissions.*
 
 ### Phase 2: The "Prompt Requirements Document" (PRD)
 
