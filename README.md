@@ -26,7 +26,7 @@ The VP has asked for three specific insights:
 
 * **Database:** Snowflake (Hosting the *SunSpectra* Retail Dataset)
 * **The Agent/IDE:** Google Antigravity
-* **The Bench:** Me (A human analyst with too much coffee)
+* **The Bench:** Me
 
 ## The Approach
 
@@ -42,14 +42,41 @@ Before asking the Agent to do anything, I need to connect it to the database and
 
 Antigravity runs on a VS Code backbone, so the connection process feels familiar to developers but might be new to pure analysts.
 
-1. **Install the Connector:** We used the native **"Snowflake"** extension within the IDE.  If you don't have this, install it.
-2. **Configure the Profile:** We set up a specific connection profile to isolate our environment.  You will need:
-    * **Account Identifier**
-    * **Username**
-    * **Password & MFA Code**
-3. **Test Connection:** Success. The IDE now had "read" access to the `SUN_SPECTRA` database.
+1. **Install Dependencies**: Open the Antigravity terminal and install the Snowflake connector and Dotenv to handle credentials securely.
+```bash
+pip install snowflake-connector-python[pandas] python-dotenv
+```
+2. **Create the "Bridge" Script**: We created a Python script (`snowflake_client.py`) to handle the connection. We opted for standard password authentication stored in environment variables.
+```python
+# Snippet from snowflake_client.py
+def get_connection():
+    return snowflake.connector.connect(
+        # ... params ...
+        password=os.getenv('SNOWFLAKE_PASSWORD')
+    )
+```
+3. **Set Environment Variables**: We created a `.env` file to store our credentials. **Crucially, we added `.env` to our `.gitignore` file to prevent leaking secrets.**
+1.  **Install Dependencies**: Open the Antigravity terminal and install the Snowflake connector and Dotenv to handle credentials securely.
+    ```bash
+    pip install snowflake-connector-python[pandas] python-dotenv
+    ```
+2.  **Create the "Bridge" Script**: We created a Python script (`snowflake_client.py`) to handle the connection. We opted for standard password authentication stored in environment variables.
+    ```python
+    # Snippet from snowflake_client.py
+    def get_connection():
+        return snowflake.connector.connect(
+            # ... params ...
+            password=os.getenv('SNOWFLAKE_PASSWORD')
+        )
+    ```
+3.  **Set Environment Variables**: We created a `.env` file to store our credentials. **Crucially, we added `.env` to our `.gitignore` file to prevent leaking secrets.**
+    ```ini
+    SNOWFLAKE_ACCOUNT=INCMWMW-EDA45259
+    SNOWFLAKE_USER=ZACK_MARTIN
+    SNOWFLAKE_PASSWORD=YOUR_PASSWORD
+    ```
 
-*Note: This step took about 5 minutes, mostly me fumbling about with my details and permissions.*
+*Note: We successfully connected using the standard Organization-Account format (`INCMWMW-EDA45259`).*
 
 ### Phase 2: The "Prompt Requirements Document" (PRD)
 
