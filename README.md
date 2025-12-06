@@ -40,12 +40,13 @@ Before asking the Agent to do anything, I need to connect it to the database and
 
 #### The Handshake (Connecting Antigravity to Snowflake)
 
-Antigravity runs on a VS Code backbone, so the connection process feels familiar to developers but might be new to pure analysts.
+Antigravity runs on a VS Code backbone, so the connection process feels familiar to developers but might be new to pure analysts.  Admitedly, the first time I set this up it required asking some questions to a coworker Eden Litvin and Gemini.  This is mostly a one-time setup though and should be repeatable for any future projects if you utilize the framework here.
 
 1. **Install Dependencies**: Open the Antigravity terminal and install the Snowflake connector and Dotenv to handle credentials securely.
 ```bash
 pip install snowflake-connector-python[pandas] python-dotenv
 ```
+
 2. **Create the "Bridge" Script**: We created a Python script (`snowflake_client.py`) to handle the connection. We opted for standard password authentication stored in environment variables.
 ```python
 # Snippet from snowflake_client.py
@@ -55,28 +56,19 @@ def get_connection():
         password=os.getenv('SNOWFLAKE_PASSWORD')
     )
 ```
-3. **Set Environment Variables**: We created a `.env` file to store our credentials. **Crucially, we added `.env` to our `.gitignore` file to prevent leaking secrets.**
-1.  **Install Dependencies**: Open the Antigravity terminal and install the Snowflake connector and Dotenv to handle credentials securely.
-    ```bash
-    pip install snowflake-connector-python[pandas] python-dotenv
-    ```
-2.  **Create the "Bridge" Script**: We created a Python script (`snowflake_client.py`) to handle the connection. We opted for standard password authentication stored in environment variables.
-    ```python
-    # Snippet from snowflake_client.py
-    def get_connection():
-        return snowflake.connector.connect(
-            # ... params ...
-            password=os.getenv('SNOWFLAKE_PASSWORD')
-        )
-    ```
+
 3.  **Set Environment Variables**: We created a `.env` file to store our credentials. **Crucially, we added `.env` to our `.gitignore` file to prevent leaking secrets.**
     ```ini
-    SNOWFLAKE_ACCOUNT=INCMWMW-EDA45259
-    SNOWFLAKE_USER=ZACK_MARTIN
+    SNOWFLAKE_ACCOUNT=YOURACCOUNT-IDENTIFIER
+    SNOWFLAKE_USER=YOUR_USERNAME
     SNOWFLAKE_PASSWORD=YOUR_PASSWORD
+    SNOWFLAKE_ROLE=YOUR_ROLE
+    SNOWFLAKE_WAREHOUSE=YOUR_WH
+    SNOWFLAKE_DATABASE=YOUR_DB
+    SNOWFLAKE_SCHEMA=YOUR_SCHEMA
     ```
 
-*Note: We successfully connected using the standard Organization-Account format (`INCMWMW-EDA45259`).*
+When substituting in real-world information for the above, a successful test connection was made.
 
 ### Phase 2: The "Prompt Requirements Document" (PRD)
 

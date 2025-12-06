@@ -9,6 +9,8 @@ Using SELECT functionality only (no CREATE, UPDATE, DELETE), we will examine the
 > **User:**
 > "I have connected you to the `SUN_SPECTRA` database in Snowflake. I need you to act as a Data Scout.
 >
+> Utilize the snowflake_client.py script for connection. 
+>
 > First, query the `INFORMATION_SCHEMA` or system catalog. List out all the **Schemas** available within this database. Do not look at tables yet; just give me the high-level buckets."
 
 **Why this matters:**
@@ -19,7 +21,7 @@ This confirms the Agent actually has read access. If it can't list schemas, ther
 **Goal:** Identify the specific tables that look relevant to our "Executive Update" (Sales & Products).
 
 > **User:**
-> "Okay, I see schemas named `CATALOG` and `ANALYTICS` (or `SALES`). (replace these)
+> "Okay, I see schemas named `CATALOG` and `ANALYTICS` (or `SALES`).
 >
 > Please list all **Table Names** found within those two schemas. Provide a one-sentence guess on what each table contains based *only* on its name."
 
