@@ -58,15 +58,15 @@ def get_connection():
 ```
 
 3.  **Set Environment Variables**: We created a `.env` file to store our credentials. **Crucially, since we're using Github for this repository, we added `.env` to our `.gitignore` file to prevent leaking secrets.**
-    ```ini
-    SNOWFLAKE_ACCOUNT=YOURACCOUNT-IDENTIFIER
-    SNOWFLAKE_USER=YOUR_USERNAME
-    SNOWFLAKE_PASSWORD=YOUR_PASSWORD
-    SNOWFLAKE_ROLE=YOUR_ROLE
-    SNOWFLAKE_WAREHOUSE=YOUR_WH
-    SNOWFLAKE_DATABASE=YOUR_DB
-    SNOWFLAKE_SCHEMA=YOUR_SCHEMA
-    ```
+```ini
+SNOWFLAKE_ACCOUNT=YOURACCOUNT-IDENTIFIER
+SNOWFLAKE_USER=YOUR_USERNAME
+SNOWFLAKE_PASSWORD=YOUR_PASSWORD
+SNOWFLAKE_ROLE=YOUR_ROLE
+SNOWFLAKE_WAREHOUSE=YOUR_WH
+SNOWFLAKE_DATABASE=YOUR_DB
+SNOWFLAKE_SCHEMA=YOUR_SCHEMA
+```
 
 When substituting in real-world information for the above, a successful test connection was made.
 
@@ -86,13 +86,15 @@ While this seems like an extra step, you can use this template for other future 
 
 We fed the instructions into the IDE Agent in three tasks as outlined above, one by one.
 
-This created a [`data_documentation.md`](data_documentation.md) file that we'll use for now feeding the following prompt to the agent:
+This created a [`data_documentation.md`](data_documentation.md) file that we'll use now when feeding the following prompt to the agent:
 
 > Utilizing your discoveries within `data_documentation.md`, answer our three key questions from our executive and generate the charts needed for each question in a Streamlit dashboard that I can easily copy to a slide deck.
 > For easy reference, here is the questions and charts requested:
 > 1. **Quarterly Performance:** What are the total sales, broken down by category and quarter? (Visual: Bar Chart + Table)
 > 2. **Product Extremes:** What are the top 5 and worst 5 performing products for each quarter? (Visual: Diverging Bar Chart + Table)
 > 3. **Customer Demographics:** Which 3 customer age segments purchased the most in the last two quarters? (Visual: Grouped Bar Chart with Avg Spend Line + Table)
+
+Now, I'll go pour another cold brew while I wait for it to do it's thing.
 
 #### Task 1: Total Sales by Category/Quarter
 
@@ -115,12 +117,6 @@ This created a [`data_documentation.md`](data_documentation.md) file that we'll 
 ## Results & Reflection
 
 *(This section will be populated with the final output comparison)*
-
-### Did it beat the Human?
-
-* **Speed:** [TBD]
-* **Accuracy:** [TBD]
-* **Frustration Level:** [TBD]
 
 ### Key Takeaways for "Pauls" (Practitioners)
 
