@@ -40,7 +40,8 @@ Build a Streamlit dashboard to answer Executive Questions regarding Quarterly Pe
         GROUP BY 1, 2
         ORDER BY 1, 2
         ```
-    *   **Visual**: Stacked Bar Chart (Sales by Quarter, Color by Category).
+    *   **SQL**: Updates to extract `QUARTER_LABEL` (e.g., 'Q1').
+    *   **Visual**: Small Multiples Bar Chart, faceted by Category.
 
 *   **Section 2: Product Extremes**
     *   **SQL**:
@@ -66,7 +67,8 @@ Build a Streamlit dashboard to answer Executive Questions regarding Quarterly Pe
         SELECT * FROM Ranked WHERE RankDesc <= 5 OR RankAsc <= 5
         ORDER BY QUARTER, SALES DESC
         ```
-    *   **Visual**: Diverging Bar Chart (or two separate charts if cleaner) showing Top 5 and Bottom 5.
+    *   **SQL**: Updates to extract `QUARTER_LABEL`.
+    *   **Visual**: Horizontal Bar Chart (`orientation='h'`), faceted by Quarter, showing Top 5 and Bottom 5.
 
 *   **Section 3: Customer Demographics**
     *   **SQL**:
@@ -77,10 +79,11 @@ Build a Streamlit dashboard to answer Executive Questions regarding Quarterly Pe
             SUM(t.TRANSACTION_AMOUNT) as TOTAL_SPEND,
             AVG(t.TRANSACTION_AMOUNT) as AVG_SPEND
         FROM FINANCE.TRANSACTIONS t
-        JOIN PUBLIC.ORDERS o ON t.ORDER_ID = o.ORDER_ID
+        JOIN SHIPBOB.ORDERS o ON t.ORDER_ID = o.ORDER_ID
         JOIN CUSTOMER.CUSTOMER_SUMMARY csum ON o.CUSTOMER_ID = csum.CUSTOMER_ID
-        JOIN CUSTOMER.CUSTOMER_SEGMENT cs ON csum.SEGMENT_NAME = cs.SEGMENT_NAME
-        WHERE t.TRANSACTION_DATE >= DATEADD('MONTH', -6, CURRENT_DATE()) -- Adjust logic based on actual data range
+        JOIN CUSTOMER.DIM_SEGMENTS ds ON csum.SEGMENT_NAME = ds.SEGMENT_NAME
+        JOIN CUSTOMER.CUSTOMER_SEGMENT cs ON ds.CUSTOMER_SEGMENT_ID = cs.CUSTOMER_SEGMENT_ID
+        WHERE t.TRANSACTION_DATE >= DATEADD('MONTH', -6, (SELECT MAX(TRANSACTION_DATE) FROM FINANCE.TRANSACTIONS))
         GROUP BY 1, 2
         ORDER BY 3 DESC
         LIMIT 3
@@ -88,9 +91,7 @@ Build a Streamlit dashboard to answer Executive Questions regarding Quarterly Pe
     *   **Visual**: Combo Chart (Bar for Total Spend, Line for Avg Spend) for the top 3 segments.
 
 ## Verification Plan
-### Automated Tests
-*   We will run the `dashboard.py` using `streamlit run` and capture a screenshot of the output.
-*   We will manually verify the SQL queries return data by running them via `run_query` during development if Streamlit fails.
+*   Run the `dashboard.py` and manually verify the visuals match specific executive requests (Small Multiples, Horizontal Bars).
 
 ---
 
@@ -103,18 +104,24 @@ We have successfully built a Streamlit dashboard that connects live to the `SUN_
 
 ### 1. Quarterly Performance
 *   **Question:** What are the total sales, broken down by category and quarter?
-*   **Visualization:** Stacked Bar Chart (Sales vs Quarter, colored by Category).
-*   **Logic:** Joins `FINANCE.TRANSACTIONS` to `CATALOG.PRODUCT_CATALOG` via `SHIPBOB` and `VARIANTS` tables to ensure accurate product attribution.
+*   **Visualization:** Small Multiples Chart (Sales vs Quarter, faceted by Category).
+*   **Logic:** Joins `FINANCE.TRANSACTIONS` to `CATALOG.PRODUCT_CATALOG` via `SHIPBOB` and `VARIANTS` tables to ensure accurate product attribution. Displays clean "Q1, Q2" labels.
 
 ### 2. Product Extremes
 *   **Question:** What are the top 5 and worst 5 performing products for each quarter?
-*   **Visualization:** Diverging Bar Chart (Top 5 vs Bottom 5).
-*   **Logic:** Uses `RANK()` window functions to dynamically identify the best and worst performers per quarter based on sales volume.
+*   **Visualization:** Horizontal Bar Chart (Top 5 vs Bottom 5).
+*   **Logic:** Uses `RANK()` window functions to dynamically identify the best and worst performers per quarter based on sales volume. Faceted by Quarter for distinct lists.
 
 ### 3. Customer Demographics
 *   **Question:** Which 3 customer age segments purchased the most in the last two quarters?
 *   **Visualization:** Combo Chart (Bar for Total Spend, Line for Avg Spend).
-*   **Logic:** Joins `FINANCE.TRANSACTIONS` to `CUSTOMER.CUSTOMER_SEGMENT` via `PUBLIC.ORDERS` and `CUSTOMER_SUMMARY` to aggregate spend by Age Range for the last 6 months.
+*   **Logic:**
+    *   *Initial Attempt (Failed)*: Tried joining `CUSTOMER_SUMMARY` directly to `CUSTOMER_SEGMENT`.
+    *   *Correction 1 (Partial)*: Added `DIM_SEGMENTS` as bridge. Still returned 0 results due to date filter.
+    *   *Correction 2 (Partial)*: Fixed date filter to use `MAX(DATE)` instead of `CURRENT_DATE`. Still returned 0 results due to joining `PUBLIC.ORDERS`.
+    *   *Correction 3 (Final)*: Identified `PUBLIC.ORDERS` has only 10 rows. Switched to **`SHIPBOB.ORDERS`** (2000 rows) as the correct bridge table, populated the chart successfully.
+    *   *Final Join Path:* `FINANCE.TRANSACTIONS` -> **`SHIPBOB.ORDERS`** -> `CUSTOMER.CUSTOMER_SUMMARY` -> `CUSTOMER.DIM_SEGMENTS` -> `CUSTOMER.CUSTOMER_SEGMENT`.
+    *   Aggregates spend by Age Range for the last 6 months (relative to max transaction date).
 
 ## How to Run
 

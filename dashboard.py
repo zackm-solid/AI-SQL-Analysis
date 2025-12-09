@@ -34,29 +34,37 @@ st.markdown("Total sales broken down by category and quarter.")
 
 q1_sql = """
 SELECT
-    DATE_TRUNC('QUARTER', t.TRANSACTION_DATE) as QUARTER,
+    DATE_TRUNC('QUARTER', t.TRANSACTION_DATE) as QUARTER_DATE,
+    'Q' || EXTRACT(QUARTER FROM t.TRANSACTION_DATE) as QUARTER_LABEL,
     p.CATEGORY,
     SUM(op.PRICE_AFTER_DISCOUNT * op.QUANTITY) as SALES
 FROM FINANCE.TRANSACTIONS t
 JOIN SHIPBOB.ORDER_PRODUCTS op ON t.ORDER_ID = op.ORDER_ID
 JOIN CATALOG.PRODUCT_VARIANTS_CATALOG pvc ON op.VARIANT_ID = pvc.VARIANT_ID
 JOIN CATALOG.PRODUCT_CATALOG p ON pvc.PRODUCT_ID = p.PRODUCT_ID
-GROUP BY 1, 2
-ORDER BY 1, 2
+GROUP BY 1, 2, 3
+ORDER BY 1, 3
 """
 
 try:
     df_q1 = run_query(q1_sql)
-    # Convert QUARTER to datetime for better sorting/display if needed, though Snowflake returns date
     
     col1, col2 = st.columns([2, 1])
     
     with col1:
-        fig1 = px.bar(df_q1, x="QUARTER", y="SALES", color="CATEGORY", title="Sales by Category and Quarter")
+        # Small Multiples: Facet by Category
+        # X Axis = Quarter Label, Y Axis = Sales
+        fig1 = px.bar(df_q1, x="QUARTER_LABEL", y="SALES", color="CATEGORY", 
+                      facet_col="CATEGORY", facet_col_wrap=3,
+                      title="Sales by Category (Small Multiples)")
+        # Clean up facet labels
+        fig1.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
         st.plotly_chart(fig1, use_container_width=True)
         
     with col2:
-        st.dataframe(df_q1)
+        # Pivot for cleaner table view
+        df_q1_pivot = df_q1.pivot(index='CATEGORY', columns='QUARTER_LABEL', values='SALES').fillna(0)
+        st.dataframe(df_q1_pivot.style.format("${:,.2f}"))
         
 except Exception as e:
     st.error(f"Error loading Quarterly Performance: {e}")
@@ -69,45 +77,48 @@ st.markdown("Top 5 and Worst 5 performing products per quarter.")
 q2_sql = """
 WITH ProductSales AS (
     SELECT
-        DATE_TRUNC('QUARTER', t.TRANSACTION_DATE) as QUARTER,
+        DATE_TRUNC('QUARTER', t.TRANSACTION_DATE) as QUARTER_DATE,
+        'Q' || EXTRACT(QUARTER FROM t.TRANSACTION_DATE) as QUARTER_LABEL,
         p.PRODUCT_NAME,
         SUM(op.PRICE_AFTER_DISCOUNT * op.QUANTITY) as SALES
     FROM FINANCE.TRANSACTIONS t
     JOIN SHIPBOB.ORDER_PRODUCTS op ON t.ORDER_ID = op.ORDER_ID
     JOIN CATALOG.PRODUCT_VARIANTS_CATALOG pvc ON op.VARIANT_ID = pvc.VARIANT_ID
     JOIN CATALOG.PRODUCT_CATALOG p ON pvc.PRODUCT_ID = p.PRODUCT_ID
-    GROUP BY 1, 2
+    GROUP BY 1, 2, 3
 ),
 Ranked AS (
     SELECT
         *,
-        RANK() OVER (PARTITION BY QUARTER ORDER BY SALES DESC) as RankDesc,
-        RANK() OVER (PARTITION BY QUARTER ORDER BY SALES ASC) as RankAsc
+        RANK() OVER (PARTITION BY QUARTER_DATE ORDER BY SALES DESC) as RankDesc,
+        RANK() OVER (PARTITION BY QUARTER_DATE ORDER BY SALES ASC) as RankAsc
     FROM ProductSales
 )
 SELECT * FROM Ranked WHERE RankDesc <= 5 OR RankAsc <= 5
-ORDER BY QUARTER, SALES DESC
+ORDER BY QUARTER_DATE, SALES DESC
 """
 
 try:
     df_q2 = run_query(q2_sql)
     
-    # Create a unified visual or simple separate lists
-    # For a diverging bar chart, we might want to flag them as "Top" or "Bottom"
     df_q2['Type'] = df_q2.apply(lambda x: 'Top 5' if x['RANKDESC'] <= 5 else 'Bottom 5', axis=1)
     
-    # To make the visual interesting, maybe we just show the latest quarter? 
-    # Or let user filter by quarter? Let's just show all for now, maybe faceted or colored.
-    # Actually, a diverging bar chart is tricky with multiple quarters. 
-    # Let's try to plot them, maybe referencing the specific request.
+    # Horizontal Bar Chart
+    # Facet by Quarter Label to separate them clearly as requested
+    fig2 = px.bar(df_q2, x="SALES", y="PRODUCT_NAME", color="Type", orientation='h', 
+                  facet_col="QUARTER_LABEL", facet_col_wrap=2,
+                  title="Top and Bottom 5 Products by Quarter", 
+                  category_orders={"Type": ["Top 5", "Bottom 5"]},
+                  height=600)
     
-    fig2 = px.bar(df_q2, x="SALES", y="PRODUCT_NAME", color="Type", orientation='h', facet_col="QUARTER",
-                  title="Top and Bottom 5 Products by Quarter", category_orders={"Type": ["Top 5", "Bottom 5"]})
-    # Adjust layout to make sure labels fit
-    fig2.update_yaxes(matches=None)
+    fig2.update_yaxes(matches=None, showticklabels=True)
+    fig2.update_xaxes(matches=None)
+    # Clean up facet labels
+    fig2.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
+    
     st.plotly_chart(fig2, use_container_width=True)
     
-    st.dataframe(df_q2)
+    st.dataframe(df_q2[['QUARTER_LABEL', 'PRODUCT_NAME', 'SALES', 'Type']].style.format({"SALES": "${:,.2f}"}))
 
 except Exception as e:
     st.error(f"Error loading Product Extremes: {e}")
@@ -124,10 +135,11 @@ SELECT
     SUM(t.TRANSACTION_AMOUNT) as TOTAL_SPEND,
     AVG(t.TRANSACTION_AMOUNT) as AVG_SPEND
 FROM FINANCE.TRANSACTIONS t
-JOIN PUBLIC.ORDERS o ON t.ORDER_ID = o.ORDER_ID
+JOIN SHIPBOB.ORDERS o ON t.ORDER_ID = o.ORDER_ID
 JOIN CUSTOMER.CUSTOMER_SUMMARY csum ON o.CUSTOMER_ID = csum.CUSTOMER_ID
-JOIN CUSTOMER.CUSTOMER_SEGMENT cs ON csum.SEGMENT_NAME = cs.SEGMENT_NAME
-WHERE t.TRANSACTION_DATE >= DATEADD('MONTH', -6, CURRENT_DATE())
+JOIN CUSTOMER.DIM_SEGMENTS ds ON csum.SEGMENT_NAME = ds.SEGMENT_NAME
+JOIN CUSTOMER.CUSTOMER_SEGMENT cs ON ds.CUSTOMER_SEGMENT_ID = cs.CUSTOMER_SEGMENT_ID
+WHERE t.TRANSACTION_DATE >= DATEADD('MONTH', -6, (SELECT MAX(TRANSACTION_DATE) FROM FINANCE.TRANSACTIONS))
 GROUP BY 1, 2
 ORDER BY 3 DESC
 LIMIT 3

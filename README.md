@@ -16,11 +16,11 @@ We are roleplaying a Senior Analyst at *SunSpectra* (our fictional retail compan
 
 The VP has asked for three specific insights:
 
-1. **Quarterly Performance:** What are the total sales, broken down by category and quarter? (Visual: Bar Chart + Table)
-2. **Product Extremes:** What are the top 5 and worst 5 performing products for each quarter? (Visual: Diverging Bar Chart + Table)
+1. **Quarterly Performance:** What are the total sales, broken down by category and quarter? (Visual: Small Multiples Chart + Table)
+2. **Product Extremes:** What are the top 5 and worst 5 performing products for each quarter? (Visual: Horizontal Bar Chart + Table)
 3. **Customer Demographics:** Which 3 customer age segments purchased the most in the last two quarters? (Visual: Grouped Bar Chart with Avg Spend Line + Table)
 
-*Note: For this analysis, Quarters are defined as calendar Q1 (Jan-Mar), Q2 (Apr-Jun), etc.*
+*Note: For this analysis, Quarters are defined as calendar Q1 (Jan-Mar), Q2 (Apr-Jun), etc. and should be grouped by in charts & tables and labeled as Q1, Q2, Q3.*
 
 ## The Tool Stack
 
@@ -90,9 +90,11 @@ This created a [`data_documentation.md`](data_documentation.md) file that we'll 
 
 > Utilizing your discoveries within `data_documentation.md`, answer our three key questions from our executive and generate the charts needed for each question in a Streamlit dashboard that I can easily copy to a slide deck.
 > For easy reference, here is the questions and charts requested:
-> 1. **Quarterly Performance:** What are the total sales, broken down by category and quarter? (Visual: Bar Chart + Table)
-> 2. **Product Extremes:** What are the top 5 and worst 5 performing products for each quarter? (Visual: Diverging Bar Chart + Table)
+> 1. **Quarterly Performance:** What are the total sales, broken down by category and quarter? (Visual: Small Multiples Chart + Table)
+> 2. **Product Extremes:** What are the top 5 and worst 5 performing products for each quarter? (Visual: Horizontal Bar Chart + Table)
 > 3. **Customer Demographics:** Which 3 customer age segments purchased the most in the last two quarters? (Visual: Grouped Bar Chart with Avg Spend Line + Table)
+>
+> *Note: For this analysis, Quarters are defined as calendar Q1 (Jan-Mar), Q2 (Apr-Jun), etc. and should be grouped by in charts & tables and labeled as Q1, Q2, Q3.*
 
 Now, I'll go pour another cold brew while I wait for it to do it's thing.
 
