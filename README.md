@@ -84,7 +84,15 @@ While this seems like an extra step, you can use this template for other future 
 
 ### Phase 3: Execution (The Analysis)
 
-We fed the instructions into the IDE Agent in three tasks as outlined above, one by one. Here is how it handled the workflow:
+We fed the instructions into the IDE Agent in three tasks as outlined above, one by one.
+
+This created a [`data_documentation.md`](data_documentation.md) file that we'll use for now feeding the following prompt to the agent:
+
+> Utilizing your discoveries within `data_documentation.md`, answer our three key questions from our executive and generate the charts needed for each question in a Streamlit dashboard that I can easily copy to a slide deck.
+> For easy reference, here is the questions and charts requested:
+> 1. **Quarterly Performance:** What are the total sales, broken down by category and quarter? (Visual: Bar Chart + Table)
+> 2. **Product Extremes:** What are the top 5 and worst 5 performing products for each quarter? (Visual: Diverging Bar Chart + Table)
+> 3. **Customer Demographics:** Which 3 customer age segments purchased the most in the last two quarters? (Visual: Grouped Bar Chart with Avg Spend Line + Table)
 
 #### Task 1: Total Sales by Category/Quarter
 
