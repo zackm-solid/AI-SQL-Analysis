@@ -4,7 +4,7 @@
 
 In my previous experiment, **Human Analyst vs. AI Analyst**, we pitted standard LLM chat interfaces against a human using Tableau. We learned that while AI is fast, it often lacks the nuance of a hands-on tool.
 
-Today, we are taking the training wheels off. We aren't just uploading a CSV to a chat window. We are using **Google's new AI IDE, Antigravity**, to connect directly to a live **Snowflake** database.
+Today, we aren't just uploading a CSV to a chat window. We are using **Google's new AI IDE, Antigravity**, to connect directly to a live **Snowflake** database.
 
 The goal? To see if an AI Agent can act as a true extension of the analyst; navigating schemas, writing production-ready SQL, and visualizing the data within the IDE, all from a natural language prompt.
 
@@ -26,7 +26,7 @@ The VP has asked for three specific insights:
 
 * **Database:** Snowflake (Hosting the *SunSpectra* Retail Dataset)
 * **The Agent/IDE:** Google Antigravity
-* **The Bench:** Me
+* **The Talent:** Me
 
 ## The Approach
 
@@ -40,7 +40,7 @@ Before asking the Agent to do anything, I need to connect it to the database and
 
 #### The Handshake (Connecting Antigravity to Snowflake)
 
-Antigravity runs on a VS Code backbone, so the connection process feels familiar to developers but might be new to pure analysts.  Admitedly, the first time I set this up it required asking some questions to a coworker Eden Litvin and Gemini.  This is mostly a one-time setup though and should be repeatable for any future projects if you utilize the framework here.
+Antigravity runs on a VS Code backbone, so the connection process feels familiar to developers but might be new to pure analysts.  Admitedly, the first time I set this up it required asking some questions to a coworker Eden Litvin and Gemini.  This is mostly a one-time setup for the project, and should be repeatable for any future projects if you utilize the framework here.
 
 1. **Install Dependencies**: Open the Antigravity terminal and install the Snowflake connector and Dotenv to handle credentials securely.
 ```bash
@@ -57,7 +57,7 @@ def get_connection():
     )
 ```
 
-3.  **Set Environment Variables**: We created a `.env` file to store our credentials. **Crucially, we added `.env` to our `.gitignore` file to prevent leaking secrets.**
+3.  **Set Environment Variables**: We created a `.env` file to store our credentials. **Crucially, since we're using Github for this repository, we added `.env` to our `.gitignore` file to prevent leaking secrets.**
     ```ini
     SNOWFLAKE_ACCOUNT=YOURACCOUNT-IDENTIFIER
     SNOWFLAKE_USER=YOUR_USERNAME
@@ -70,15 +70,21 @@ def get_connection():
 
 When substituting in real-world information for the above, a successful test connection was made.
 
-### Phase 2: The "Prompt Requirements Document" (PRD)
+### Phase 2: Prompting & Generating
 
-Instead of blind prompting, I used a separate instance of Gemini to look at our database metadata and generate a **System Instruction** for the Antigravity Agent. Think of this as translating "Business Ask" into "Robot Instructions."
+Instead of blind prompting, I used a separate instance of Gemini to generate **Instruction** for the Antigravity Agent. Think of this as translating "Business Ask" into "Robot Instructions."
 
-*(Link to the PRD Prompt will be added here)*
+I prefer to use this method when prompting AI agents, rather than just copy/pasting a large amount of instructions into a chat.
+
+In my experience, this creates a better output with fewer follow-up steps since you're giving the tools a framework and criteria to work from.
+
+While this seems like an extra step, you can use this template for other future projects, just filling in relevant details for the problem, and it enables the rest of this process to run smoothly.
+
+*See full prompts and process [here](phase_2_prompts.md).*
 
 ### Phase 3: Execution (The Analysis)
 
-We fed the instructions into the IDE Agent. Here is how it handled the workflow:
+We fed the instructions into the IDE Agent in three tasks as outlined above, one by one. Here is how it handled the workflow:
 
 #### Task 1: Total Sales by Category/Quarter
 

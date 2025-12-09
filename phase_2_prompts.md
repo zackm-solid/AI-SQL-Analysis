@@ -1,8 +1,8 @@
-## Phase 1 Prompts: Discovery
+## Phase 2 Prompts: Discovery
 
 Using SELECT functionality only (no CREATE, UPDATE, DELETE), we will examine the Snowflake `SUN_SPECTRA` database.
 
-### Step 1: The High-Level Scan
+### Task 1: The High-Level Scan
 
 **Goal:** Verify the connection and see the landscape (Schemas).
 
@@ -12,11 +12,13 @@ Using SELECT functionality only (no CREATE, UPDATE, DELETE), we will examine the
 > Utilize the snowflake_client.py script for connection. 
 >
 > First, query the `INFORMATION_SCHEMA` or system catalog. List out all the **Schemas** available within this database. Do not look at tables yet; just give me the high-level buckets."
+> 
+> Once this is completed, add the information in a well-structured `data_documentation.md` file that we will use in future tasks and phases.
 
 **Why this matters:**
 This confirms the Agent actually has read access. If it can't list schemas, there is no point in asking for sales data. It also helps us identify if there are `DEV`, `PROD`, or `STAGING` schemas we need to be aware of.
 
-### Step 2: The Table Muster
+### Task 2: The Table Muster
 
 **Goal:** Identify the specific tables that look relevant to our "Executive Update" (Sales & Products).
 
@@ -28,7 +30,7 @@ This confirms the Agent actually has read access. If it can't list schemas, ther
 **Why this matters:**
 This forces the AI to perform a "sanity check." If it sees a table named `SALES_2022_BACKUP`, we want it to flag that *now* so we don't accidentally query old data later.
 
-### Step 3: The Schema Inspection (The "Map")
+### Task 3: The Schema Inspection (The "Map")
 
 **Goal:** Now that we have targets (likely `PRODUCT_CATALOG` and `SALES_HISTORY`), we need the technical specs to link them.
 
