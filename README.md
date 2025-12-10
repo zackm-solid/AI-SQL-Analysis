@@ -25,22 +25,28 @@ The VP has asked for three specific insights:
 ## The Tool Stack
 
 * **Database:** Snowflake (Hosting the *SunSpectra* Retail Dataset)
-* **The Agent/IDE:** Google Antigravity
+* **The Agent/IDE:** Google Antigravity, Utilizing Google Gemini 3 Pro (High) Model
 * **The Talent:** Me
 
 ## The Approach
 
 Unlike a standard chat where you paste data, this workflow mimics a developer environment.
 
-### Phase 1: Setup
+### Phase 1: Connection 
 
 Before asking the Agent to do anything, I need to connect it to the database and give it a context of the schema.
 
 * **Goal:** Establish a "Context Layer" so the AI knows how tables join (e.g., `PRODUCT_ID` to `SKU`) without us explicitly writing the joins every time.
 
+**Key Discoveries documented, as in [`data_documentation.md`](data_documentation.md):**
+* **Schemas identified:** `CATALOG` (Products), `FINANCE` (Transactions), `CUSTOMER` (Demographics), and `SHIPBOB` (Fulfillment).
+* **The Glue:** The Agent correctly identified that `FINANCE.TRANSACTIONS` did not contain customer or product IDs directly. It found the necessary bridge tables:
+    * **Sales to Products:** `SHIPBOB.ORDER_PRODUCTS`
+    * **Sales to Customers:** `PUBLIC.ORDERS` (Initially assumed) vs `SHIPBOB.ORDERS` (Actual).
+
 #### The Handshake (Connecting Antigravity to Snowflake)
 
-Antigravity runs on a VS Code backbone, so the connection process feels familiar to developers but might be new to pure analysts.  Admitedly, the first time I set this up it required asking some questions to a coworker Eden Litvin and Gemini.  This is mostly a one-time setup for the project, and should be repeatable for any future projects if you utilize the framework here.
+Antigravity runs on a VS Code backbone, so the connection process feels familiar to developers but might be new to pure analysts.  Admitedly, the first time I set this up, it required asking some questions to a coworker (thanks Eden Litvin!) and Gemini.  This is mostly a one-time setup for the project, and should be repeatable for any future projects if you utilize the framework here.
 
 1. **Install Dependencies**: Open the Antigravity terminal and install the Snowflake connector and Dotenv to handle credentials securely.
 ```bash
@@ -72,9 +78,9 @@ When substituting in real-world information for the above, a successful test con
 
 ### Phase 2: Prompting & Generating
 
-Instead of blind prompting, I used a separate instance of Gemini to generate **Instruction** for the Antigravity Agent. Think of this as translating "Business Ask" into "Robot Instructions."
+Instead of blind prompting, I used a separate instance of Gemini to generate an **Instruction Document** for the Antigravity Agent. Think of this as translating "Business Ask" into "Robot Instructions".
 
-I prefer to use this method when prompting AI agents, rather than just copy/pasting a large amount of instructions into a chat.
+I prefer to use this method when prompting agents, rather than just copy/pasting a large amount of instructions into a chat.
 
 In my experience, this creates a better output with fewer follow-up steps since you're giving the tools a framework and criteria to work from.
 
@@ -98,23 +104,43 @@ This created a [`data_documentation.md`](data_documentation.md) file that we'll 
 
 Now, I'll go pour another cold brew while I wait for it to do it's thing.
 
-#### Task 1: Total Sales by Category/Quarter
+#### The Output Summary
 
-* **The SQL Generation:** Did it handle the date grouping correctly?
+Now, it's done!  We get the message that our Streamlit app is live and we can go view it on `localhost:8501`.  Good news.
+
+Before I dive into the tasks, I must stop here and say, while this felt like a lot, when you see it in action, it's really cool to see this all happen.
+
+But, it's not perfect.  We hit a snag on Task 3, I'll dive into that below.
+
+##### Task 1: Total Sales by Category/Quarter
+
+* **The SQL Generation:** The Agent successfully generated complex SQL queries involving 4-table joins to link `TRANSACTIONS` to `PRODUCT_CATALOG`.
 * **The Visualization:** Did it render a clean bar chart?
-* **Analyst Grade:** [Pass/Fail]
+* **Analyst Grade:** *Pass*
 
-#### Task 2: Top & Worst 5 Products
+##### Task 2: Top & Worst 5 Products
 
-* **The Complexity:** This requires ranking functions (like `QUALIFY` or `RANK()` in Snowflake). Did the AI figure that out, or did it try to do it in Python memory?
-* **The Visualization:** Diverging bars are tricky. How did it handle the UI?
-* **Analyst Grade:** [Pass/Fail]
+* **The Complexity:** This requires ranking functions and CTEs. Like in the above, it made some beautiful SQL that appears to pull in the right data.
+* **The Visualization:** Not Bad! I think doing some
+* **Analyst Grade:** *Pass*
 
-#### Task 3: Customer Segmentation (The Join Heavy Lift)
+##### Task 3: Customer Segmentation (The Join Heavy Lift)
 
-* **The Complexity:** This requires joining Sales, Customers, and Products, filtering by specific dates, and grouping by age buckets.
-* **The Visualization:** Combo charts (Bar + Line) are notoriously hard for AI agents to format correctly.
-* **Analyst Grade:** [Pass/Fail]
+* **The Complexity:** This requires joining Sales, Customers, and Products, filtering by specific dates, and grouping age buckets.
+* **The Visualization:** The final visualization looks great!  A clean combo (bar/line) chart with a good table for details.
+
+!['Demographics Graph'](~/assets/Demographics Success.png)
+
+The initial chart returned **No Data**.
+
+* **The Failure:** As seen in `Demographics Fail.png`, the chart axes were drawn, but no data was plotted.
+* **The Investigation:**
+    * The Agent initially joined `FINANCE.TRANSACTIONS` to `PUBLIC.ORDERS`.
+    * Upon deeper inspection (documented in [`dashboard_documentation.md`](dashboard_documentation.md)), we discovered `PUBLIC.ORDERS` contained only 10 rows of test data.
+    * **The Fix:** We redirected the join path to **`SHIPBOB.ORDERS`** (2,000+ rows).  This did take a couple of follow up prompts, but nothing we couldn't solve within Antigravity, chatting with the Agent.
+    * **The Result:** The chart populated with the correct segments once the correct join path was identified.
+
+* **Analyst Grade:** *Overall Pass... It just required some additional prompting to correct.*
 
 ## Results & Reflection
 
