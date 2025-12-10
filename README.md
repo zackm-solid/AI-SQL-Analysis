@@ -16,7 +16,7 @@ Want to follow along in greater detail? I've documented it all in this GitHub re
 
 ## The Scenario: The Monday Morning "Fire Drill"
 
-We are roleplaying a Senior Analyst at *SunSpectra* (our fictional retail company). It’s Monday morning, and the VP of Sales needs an "Executive Update" immediately. They aren't looking for a deep dive; they want a pulse check on performance to help them tell a story in their afternoon board meeting.
+We are roleplaying a Senior Analyst at *SunSpectra* (our fictional retail company). It’s Monday morning, and the VP of Sales needs an "Executive Update" immediately. They aren't looking for a deep dive; they want a pulse check on performance to help them tell a story in their afternoon meeting with the C-suite.
 
 ### The Request
 
@@ -28,17 +28,21 @@ The VP has asked for three specific insights:
 
 *Note: For this analysis, Quarters are defined as calendar Q1 (Jan-Mar), Q2 (Apr-Jun), etc. and should be grouped by in charts & tables and labeled as Q1, Q2, Q3.*
 
-## The Tool Stack
+### The Tool Stack
 
 * **Database:** Snowflake (Hosting the *SunSpectra* Retail Dataset)
 * **The Agent/IDE:** Google Antigravity, Utilizing Google Gemini 3 Pro (High) Model
 * **The Talent:** Me
 
-## The Approach
+### The Approach
 
-Unlike a chat where you paste data and get an answer, this workflow mimics a developer environment.
+The biggest difference from how we used the Cursor IDE previously for data analysis, is that we're connecting to a live database this time.
 
-### Phase 1: Connection 
+Antigravity is very similar to Cursor, the IDE is the same, it's just a difference in the agents. Therefore, everything we're doing here should also work in Cursor.
+
+![Antigravity Agent](assets/Antigravity%20Agent.png)
+
+## Phase 1: Connection 
 
 Before asking the Agent to do anything, I need to connect it to the database and give it a context of the schema.
 
@@ -50,9 +54,11 @@ Before asking the Agent to do anything, I need to connect it to the database and
     * **Sales to Products:** `SHIPBOB.ORDER_PRODUCTS`
     * **Sales to Customers:** `PUBLIC.ORDERS` (Initially assumed) vs `SHIPBOB.ORDERS` (Actual).
 
-#### The Handshake (Connecting Antigravity to Snowflake)
+### The Handshake (Connecting Antigravity to Snowflake)
 
-Antigravity runs on a VS Code backbone, so the connection process feels familiar to developers but might be new to pure analysts. Admitedly, the first time I set this up, it required asking some questions to a coworker (thanks Eden Litvin!) and Gemini. This is mostly a one-time setup for the project, and should be repeatable for any future projects if you utilize the framework here.
+Admitedly, the first time I set this up, it required asking some questions to my coworker (thanks Eden Litvin!) and Gemini. I was able to first make a connection to Snowflake via their extension for VS Code, but the agent couldn't interact with it. I thought about opting for setting up MCP server, but this method worked great.
+
+This is mostly a one-time setup for the project, and should be repeatable for any future projects if you utilize the framework here.
 
 1. **Install Dependencies**: Open the Antigravity terminal and install the Snowflake connector and Dotenv to handle credentials securely.
 ```bash
@@ -82,7 +88,7 @@ SNOWFLAKE_SCHEMA=YOUR_SCHEMA
 
 When substituting in real-world information for the above, a successful test connection was made.
 
-### Phase 2: Prompting & Generating
+## Phase 2: Prompting & Generating
 
 Instead of blind prompting, I used a separate instance of Gemini to generate an **Instruction Document** for the Antigravity Agent. Think of this as translating "Business Ask" into "Robot Instructions".
 
@@ -94,11 +100,11 @@ While this seems like an extra step, you can use this template for other future 
 
 *See full prompts and process [here](phase_2_prompts.md).*
 
-### Phase 3: Execution (The Analysis)
+## Phase 3: Execution (The Analysis)
 
-We fed the instructions into the IDE Agent in three tasks as outlined above, one by one.
+We fed the instructions into the IDE Agent in three steps, having the agent work through one step completely & updating documentation, before moving to the next one.
 
-The agent created a [`data_documentation.md`](data_documentation.md) file that we'll use now when feeding the following prompt to the agent:
+The agent created a [`data_documentation.md`](data_documentation.md) file during the above process. We'll use that now when feeding the following prompt to the agent:
 
 > Utilizing your discoveries within `data_documentation.md`, answer our three key questions from our executive and generate the charts needed for each question in a Streamlit dashboard that I can easily copy to a slide deck.
 > For easy reference, here is the questions and charts requested:
@@ -110,28 +116,28 @@ The agent created a [`data_documentation.md`](data_documentation.md) file that w
 
 Now, I'll go pour another cold brew while I wait for it to do it's thing.
 
-### Phase 4: The Analysis of the Analysis
+## Phase 4: The Analysis of the Analysis
 
-Now, it's done! We get the message that our Streamlit app is live and we can go view it on `localhost:8501`.  Good news.
+It's done! We get the message that our Streamlit app is live and we can go view it on `localhost:8501`.  Good news.
 
-We also requested full documentation of the dashboard and data along the way, so we have [`data_documentation.md`](data_documentation.md) and [`dashboard.md`](dashboard_documentation.md) files for those of you who want the technical stuff.
+We also requested full documentation of the dashboard and data, so we have [`data_documentation.md`](data_documentation.md) and [`dashboard.md`](dashboard_documentation.md) files for those of you who want all of the technical details.
 
-Before I dive into the tasks, I must stop here and say, while this felt like a lot, when you see it in action, it's really cool to see this all happen.
+Before I dive into the tasks, I must stop here and say while this felt like a lot of setup, when you see it in action, it feels very "magical" to have it run all of these queries and create documentation of the schemas, tables, and relationships.
 
 But, it's not perfect. We hit a snag on Task 3, I'll dive into that below.
 
-#### Task 1: Total Sales by Category/Quarter
+### Task 1: Total Sales by Category/Quarter
 
 * **Analyst Grade:** *Pass*
 * **The SQL Generation:** The Agent successfully generated complex SQL queries involving 4-table joins to link `TRANSACTIONS` to `PRODUCT_CATALOG`.
-* **The Visualization:** It created a small multiples chart, which I actually changed after its first output. I originally suggested a stacked bar chart, but it was way too cluttered to read. While there's a lot going on in the small multiples chart, I think it reads much better - we have a lot of categories to report on.
+* **The Visualization:** It created a small multiples chart, which I actually changed to after its first output. I originally suggested a stacked bar chart, but it was way too cluttered to read. While there's a lot going on in the small multiples chart, I think it reads much better - we have a lot of categories to report on.
 
-    If I had to make an additional edit, I would simply have it sort the categories in the graph and table to DESC order so it was very easy to see the top performers. But, for our experiment, I figured I'd display what it actually churned out from the initial prompt.
+    If I had to make an additional edit, I would simply have it sort the categories in the graph and table to DESC order so it was very easy to see the top performers. But, for our experiment, I figured I'd display what it actually churned out from the initial prompt on this chart type.
 
 ![Quarterly Performance](assets/Quarterly%20Performance.png)
 
 
-#### Task 2: Top & Worst 5 Products
+### Task 2: Top & Worst 5 Products
 
 * **Analyst Grade:** *Pass*
 * **The Complexity:** This requires ranking functions and CTEs. Like in the above, it made some beautiful SQL that appears to pull in the right data.
@@ -144,7 +150,7 @@ But, it's not perfect. We hit a snag on Task 3, I'll dive into that below.
 ![Product Extremes](assets/Product%20Extremes.png)
 
 
-#### Task 3: Customer Segmentation (The Join Heavy Lift)
+### Task 3: Customer Segmentation (The Join Heavy Lift)
 
 * **The Complexity:** This requires joining Sales, Customers, and Products, filtering by specific dates, and grouping by pre-determined customer segment data.
 * **The Visualization:** The final visualization looks great!  A clean combo (bar/line) chart with a good table for details. This time, I did ask it to do a sort of the categories from 18-24, 25-34, and 65+.
@@ -169,8 +175,9 @@ This is simulated data, to be fair - and yes, I did check in Snowflake just to m
 
 * **Analyst Grade:** *Overall Pass... It just required some additional prompting to correct.*
 
-### Key Takeaways
+## Key Takeaways
 
 1. **Schema Context is King:** The Agent performed well overall, but the way we prompted it played a big role in that. It's worth it, to get quality results, to do this prompting up front. Having an agent just start to go write SQL without any discovery or context, has been well-documented in analytics blogs that it doesn't go well.
-2. **The "Black Box" Problem:** We needed to dig deeper 
-3. **Future Outlook:** This isn't replacing the analyst, but it might replace the *Junior* Analyst's SQL writing tasks.
+2. **Not Perfect, but Damn Good:** We needed to dig deeper when things failed, but that's to be expected. Not every query I have ever written has been perfect, and sometimes I've had to go and do a bunch of queries on the side to figure out why things aren't lining up the way I thought they would. Turns out, this the same flow, but just doing it with prompts instead of actually writing SQL.
+3. **The "Black Box" Problem:** This is generally just a problem with AI or complex systems where you're not seeing all of the individual inner workings happening, so it's harder to trust. In fact, if I just blindly trust it, I could be feeding my executive bad data. So, I found myself wanting to verify the results, even if everything in the documentation made sense. This feels partly like a human problem, rather than an AI problem. Maybe it's something that can be solved as I continue to use the tool more, review documentation, and build my own confidence in its accuracy.
+4. **Future Outlook:** As I have often concluded in my [articles](https://www.datagoats.org/blog) that cover how AI will affect analytics career, nothing's changed. This tool isn't going to replace an analyst. With the right context & documentation prepared, it could take over SQL generation for an analyst. I think that's a good thing. Having more time to tackle bigger work. Nobody wants to just be a SQL Monkey, anyways.
