@@ -148,6 +148,10 @@ LIMIT 3
 try:
     df_q3 = run_query(q3_sql)
     
+    # Sort by AGE_RANGE as requested (18-24, 25-34, 65+)
+    # Since these are strings that sort correctly alphabetically, simple sort works
+    df_q3 = df_q3.sort_values(by="AGE_RANGE")
+    
     # Dual Axis Chart
     fig3 = go.Figure()
     
@@ -156,7 +160,8 @@ try:
         x=df_q3['AGE_RANGE'],
         y=df_q3['TOTAL_SPEND'],
         name='Total Spend',
-        marker_color='indigo'
+        marker_color='indigo',
+        hovertemplate='Total Spend: $%{y:,.2f}<extra></extra>'
     ))
     
     # Line for Avg Spend
@@ -166,13 +171,14 @@ try:
         name='Avg Spend',
         yaxis='y2',
         mode='lines+markers',
-        line=dict(color='orange', width=3)
+        line=dict(color='orange', width=3),
+        hovertemplate='Avg Spend: $%{y:,.2f}<extra></extra>'
     ))
     
     fig3.update_layout(
         title="Top 3 Age Segments: Total vs Avg Spend",
-        yaxis=dict(title="Total Spend"),
-        yaxis2=dict(title="Avg Spend", overlaying="y", side="right"),
+        yaxis=dict(title="Total Spend", tickformat="$,.0f"),
+        yaxis2=dict(title="Avg Spend", overlaying="y", side="right", tickformat="$,.0f"),
         legend=dict(x=0.1, y=1.1, orientation="h")
     )
     
@@ -180,7 +186,7 @@ try:
     with col1:
         st.plotly_chart(fig3, use_container_width=True)
     with col2:
-        st.dataframe(df_q3)
+        st.dataframe(df_q3.style.format({"TOTAL_SPEND": "${:,.2f}", "AVG_SPEND": "${:,.2f}"}))
 
 except Exception as e:
     st.error(f"Error loading Customer Demographics: {e}")

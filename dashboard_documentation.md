@@ -122,6 +122,8 @@ We have successfully built a Streamlit dashboard that connects live to the `SUN_
     *   *Correction 3 (Final)*: Identified `PUBLIC.ORDERS` has only 10 rows. Switched to **`SHIPBOB.ORDERS`** (2000 rows) as the correct bridge table, populated the chart successfully.
     *   *Final Join Path:* `FINANCE.TRANSACTIONS` -> **`SHIPBOB.ORDERS`** -> `CUSTOMER.CUSTOMER_SUMMARY` -> `CUSTOMER.DIM_SEGMENTS` -> `CUSTOMER.CUSTOMER_SEGMENT`.
     *   Aggregates spend by Age Range for the last 6 months (relative to max transaction date).
+    *   *Sorting:* Results (Top 3 by Spend) are sorted by `AGE_RANGE` ascending (18-24, 25-34, 65+) for visual consistency.
+    *   *Formatting:* Spend columns displayed as Currency ($).
 
 ## How to Run
 
