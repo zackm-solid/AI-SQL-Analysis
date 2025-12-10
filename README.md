@@ -1,24 +1,30 @@
 # Human Plus AI Analyst: Defying Gravity
 
+<div align="center">
+  <img src="assets/Defying%20Gravity.png" width="600" />
+</div>
+
 ## Introduction
 
-In my previous experiment, **Human Analyst vs. AI Analyst**, we pitted standard LLM chat interfaces against a human using Tableau. We learned that while AI is fast, it often lacks the nuance of a hands-on tool.
+In my previous article, [**Human Analyst vs. AI Analyst**](https://www.datagoats.org/zack-martins-featured/human-analyst-vs-ai-analyst), I examined how three different AI tools would stack up against me (using Tableau) in analyzing a basic CSV dataset to find some insights.
 
-Today, we aren't just uploading a CSV to a chat window. We are using **Google's new AI IDE, Antigravity**, to connect directly to a live **Snowflake** database.
+Today, we go beyond the nice clean dataset (minus the date errors!) in a CSV. We're going to connect directly to a live **Snowflake** database and run queries, all within **Google's New AI IDE: Antigravity**.
 
 The goal? To see if an AI Agent can act as a true extension of the analyst; navigating schemas, writing production-ready SQL, and visualizing the data within the IDE, all from a natural language prompt.
+
+Want to follow along in greater detail? I've documented it all in this GitHub repo so you can see examples of code, prompts and more.
 
 ## The Scenario: The Monday Morning "Fire Drill"
 
 We are roleplaying a Senior Analyst at *SunSpectra* (our fictional retail company). It’s Monday morning, and the VP of Sales needs an "Executive Update" immediately. They aren't looking for a deep dive; they want a pulse check on performance to help them tell a story in their afternoon board meeting.
 
-### The VP's Request
+### The Request
 
 The VP has asked for three specific insights:
 
 1. **Quarterly Performance:** What are the total sales, broken down by category and quarter? (Visual: Small Multiples Chart + Table)
 2. **Product Extremes:** What are the top 5 and worst 5 performing products for each quarter? (Visual: Horizontal Bar Chart + Table)
-3. **Customer Demographics:** Which 3 customer age segments purchased the most in the last two quarters? (Visual: Grouped Bar Chart with Avg Spend Line + Table)
+3. **Customer Demographics:** Which 3 customer age segments purchased the most in the last two quarters? (Visual: Bar Chart with Avg Spend Line + Table)
 
 *Note: For this analysis, Quarters are defined as calendar Q1 (Jan-Mar), Q2 (Apr-Jun), etc. and should be grouped by in charts & tables and labeled as Q1, Q2, Q3.*
 
@@ -30,7 +36,7 @@ The VP has asked for three specific insights:
 
 ## The Approach
 
-Unlike a standard chat where you paste data, this workflow mimics a developer environment.
+Unlike a chat where you paste data and get an answer, this workflow mimics a developer environment.
 
 ### Phase 1: Connection 
 
@@ -46,7 +52,7 @@ Before asking the Agent to do anything, I need to connect it to the database and
 
 #### The Handshake (Connecting Antigravity to Snowflake)
 
-Antigravity runs on a VS Code backbone, so the connection process feels familiar to developers but might be new to pure analysts.  Admitedly, the first time I set this up, it required asking some questions to a coworker (thanks Eden Litvin!) and Gemini.  This is mostly a one-time setup for the project, and should be repeatable for any future projects if you utilize the framework here.
+Antigravity runs on a VS Code backbone, so the connection process feels familiar to developers but might be new to pure analysts. Admitedly, the first time I set this up, it required asking some questions to a coworker (thanks Eden Litvin!) and Gemini. This is mostly a one-time setup for the project, and should be repeatable for any future projects if you utilize the framework here.
 
 1. **Install Dependencies**: Open the Antigravity terminal and install the Snowflake connector and Dotenv to handle credentials securely.
 ```bash
@@ -92,7 +98,7 @@ While this seems like an extra step, you can use this template for other future 
 
 We fed the instructions into the IDE Agent in three tasks as outlined above, one by one.
 
-This created a [`data_documentation.md`](data_documentation.md) file that we'll use now when feeding the following prompt to the agent:
+The agent created a [`data_documentation.md`](data_documentation.md) file that we'll use now when feeding the following prompt to the agent:
 
 > Utilizing your discoveries within `data_documentation.md`, answer our three key questions from our executive and generate the charts needed for each question in a Streamlit dashboard that I can easily copy to a slide deck.
 > For easy reference, here is the questions and charts requested:
@@ -104,36 +110,57 @@ This created a [`data_documentation.md`](data_documentation.md) file that we'll 
 
 Now, I'll go pour another cold brew while I wait for it to do it's thing.
 
-#### The Output Summary
+### Phase 4: The Analysis of the Analysis
 
-Now, it's done!  We get the message that our Streamlit app is live and we can go view it on `localhost:8501`.  Good news.
+Now, it's done! We get the message that our Streamlit app is live and we can go view it on `localhost:8501`.  Good news.
+
+We also requested full documentation of the dashboard and data along the way, so we have [`data_documentation.md`](data_documentation.md) and [`dashboard.md`](dashboard_documentation.md) files for those of you who want the technical stuff.
 
 Before I dive into the tasks, I must stop here and say, while this felt like a lot, when you see it in action, it's really cool to see this all happen.
 
-But, it's not perfect.  We hit a snag on Task 3, I'll dive into that below.
+But, it's not perfect. We hit a snag on Task 3, I'll dive into that below.
 
-##### Task 1: Total Sales by Category/Quarter
+#### Task 1: Total Sales by Category/Quarter
 
+* **Analyst Grade:** *Pass*
 * **The SQL Generation:** The Agent successfully generated complex SQL queries involving 4-table joins to link `TRANSACTIONS` to `PRODUCT_CATALOG`.
-* **The Visualization:** Did it render a clean bar chart?
+* **The Visualization:** It created a small multiples chart, which I actually changed after its first output. I originally suggested a stacked bar chart, but it was way too cluttered to read. While there's a lot going on in the small multiples chart, I think it reads much better - we have a lot of categories to report on.
+
+    If I had to make an additional edit, I would simply have it sort the categories in the graph and table to DESC order so it was very easy to see the top performers. But, for our experiment, I figured I'd display what it actually churned out from the initial prompt.
+
+![Quarterly Performance](assets/Quarterly%20Performance.png)
+
+
+#### Task 2: Top & Worst 5 Products
+
 * **Analyst Grade:** *Pass*
-
-##### Task 2: Top & Worst 5 Products
-
 * **The Complexity:** This requires ranking functions and CTEs. Like in the above, it made some beautiful SQL that appears to pull in the right data.
-* **The Visualization:** Not Bad! I think doing some
-* **Analyst Grade:** *Pass*
+* **The Visualization:** Not Bad! The spacing is a little weird and sometimes bars overlap as you scroll, but it's easy to read.
 
-##### Task 3: Customer Segmentation (The Join Heavy Lift)
+    I think doing some additional customization of the visuals would be worth it if we were making a permanent dashboard, but that's easy to do with some follow-up prompts suggesting tweaks to color or format.
 
-* **The Complexity:** This requires joining Sales, Customers, and Products, filtering by specific dates, and grouping age buckets.
-* **The Visualization:** The final visualization looks great!  A clean combo (bar/line) chart with a good table for details.
+    Plus, remember this is for a meeting this afternoon - we were aiming for simplicity.
 
-!['Demographics Graph'](~/assets/Demographics Success.png)
+![Product Extremes](assets/Product%20Extremes.png)
 
-The initial chart returned **No Data**.
 
-* **The Failure:** As seen in `Demographics Fail.png`, the chart axes were drawn, but no data was plotted.
+#### Task 3: Customer Segmentation (The Join Heavy Lift)
+
+* **The Complexity:** This requires joining Sales, Customers, and Products, filtering by specific dates, and grouping by pre-determined customer segment data.
+* **The Visualization:** The final visualization looks great!  A clean combo (bar/line) chart with a good table for details. This time, I did ask it to do a sort of the categories from 18-24, 25-34, and 65+.
+
+For some reason, we don't have a 35-65 category in the table. Sorry, fellow Millenials and Gen X'rs.
+
+This is simulated data, to be fair - and yes, I did check in Snowflake just to make sure.
+
+![Demographics Success](assets/Demographics%20Success.png)
+
+**OK - so what was that snag I mentioned? The initial chart returned no data.**
+
+* **The Failure:** As seen below, the chart axes were drawn, but no data was plotted.
+
+![Demographics Failure](assets/Demographics%20Fail.png)
+
 * **The Investigation:**
     * The Agent initially joined `FINANCE.TRANSACTIONS` to `PUBLIC.ORDERS`.
     * Upon deeper inspection (documented in [`dashboard_documentation.md`](dashboard_documentation.md)), we discovered `PUBLIC.ORDERS` contained only 10 rows of test data.
@@ -142,12 +169,8 @@ The initial chart returned **No Data**.
 
 * **Analyst Grade:** *Overall Pass... It just required some additional prompting to correct.*
 
-## Results & Reflection
+### Key Takeaways
 
-*(This section will be populated with the final output comparison)*
-
-### Key Takeaways for "Pauls" (Practitioners)
-
-1. **Schema Context is King:** The Agent only performed as well as the metadata we exposed to it.
-2. **The "Black Box" Problem:** Verifying the SQL generated by the IDE took nearly as long as writing it from scratch.
+1. **Schema Context is King:** The Agent performed well overall, but the way we prompted it played a big role in that. It's worth it, to get quality results, to do this prompting up front. Having an agent just start to go write SQL without any discovery or context, has been well-documented in analytics blogs that it doesn't go well.
+2. **The "Black Box" Problem:** We needed to dig deeper 
 3. **Future Outlook:** This isn't replacing the analyst, but it might replace the *Junior* Analyst's SQL writing tasks.
