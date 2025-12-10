@@ -56,7 +56,7 @@ Before asking the Agent to do anything, I need to connect it to the database and
 
 ### The Handshake (Connecting Antigravity to Snowflake)
 
-Admitedly, the first time I set this up, it required asking some questions to my coworker (thanks Eden Litvin!) and Gemini. I was able to first make a connection to Snowflake via their extension for VS Code, but the agent couldn't interact with it. I thought about opting for setting up MCP server, but this method worked great.
+Admitedly, the first time I set this up, it required asking some questions to my coworker (thanks [Eden Litvin](https://www.linkedin.com/in/eden-litvin/)!) and Gemini. I was able to first make a connection to Snowflake via their extension for VS Code, but the agent couldn't interact with it. I thought about opting for setting up MCP server, but this method worked great.
 
 This is mostly a one-time setup for the project, and should be repeatable for any future projects if you utilize the framework here.
 
